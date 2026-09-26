@@ -16,7 +16,7 @@ Select the `StillPath` scheme and an iOS 17+ simulator. No credentials are requi
 
 ## GitHub Xcode builds
 
-`.github/workflows/ios.yml` generates the project on a GitHub-hosted Mac and runs the unit tests on every push and pull request. From the Actions tab, run **iOS CI** manually with **signed_archive** enabled to use the configured App Store Connect secrets, create a signed archive, export an IPA, and retain it as a private workflow artifact. The workflow does not upload a build to TestFlight or submit it for review.
+`.github/workflows/ios.yml` generates the project on a GitHub-hosted Mac and compiles the app, widget, and unit-test bundle on every push and pull request. From the Actions tab, enable **run_simulator_tests** to boot an iPhone simulator and execute tests. Enable **signed_archive** to use the configured App Store Connect secrets, create a signed archive, export an IPA, and retain it as a private workflow artifact. The workflow does not upload a build to TestFlight or submit it for review.
 
 ## Production setup
 

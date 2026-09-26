@@ -11,6 +11,11 @@ on:
         required: true
         type: boolean
         default: false
+      run_simulator_tests:
+        description: Launch the simulator and execute unit tests
+        required: true
+        type: boolean
+        default: false
 
 concurrency:
   group: ios-${{ github.workflow }}-${{ github.ref }}
@@ -69,13 +74,27 @@ jobs:
           PY
           )"
           echo "id=$DEVICE_ID" >> "$GITHUB_OUTPUT"
-          xcrun simctl boot "$DEVICE_ID" || true
-          xcrun simctl bootstatus "$DEVICE_ID" -b
 
-      - name: Build and run unit tests
+      - name: Build app and unit tests
         run: |
           set -o pipefail
-          xcodebuild test \
+          xcodebuild build-for-testing \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination "id=${{ steps.simulator.outputs.id }}" \
+            -destination-timeout 120 \
+            -derivedDataPath "$DERIVED_DATA" \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee xcodebuild.log
+
+      - name: Boot simulator and run unit tests
+        if: github.event_name == 'workflow_dispatch' && inputs.run_simulator_tests
+        run: |
+          set -o pipefail
+          xcrun simctl boot "${{ steps.simulator.outputs.id }}" || true
+          xcrun simctl bootstatus "${{ steps.simulator.outputs.id }}" -b
+          xcodebuild test-without-building \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -configuration Debug \
@@ -96,6 +115,7 @@ jobs:
           name: xcode-test-diagnostics
           path: |
             xcodebuild-test.log
+            xcodebuild.log
             TestResults.xcresult
           if-no-files-found: ignore
           retention-days: 14
