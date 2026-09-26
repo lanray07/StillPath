@@ -23,7 +23,7 @@ targets:
       - path: StillPath/Configuration/StillPath.storekit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.stillpath.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.lanray07.stillpath
         PRODUCT_NAME: StillPath
         INFOPLIST_FILE: StillPath/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: StillPath/Resources/StillPath.entitlements
@@ -40,7 +40,7 @@ targets:
       - path: StillPathWidgets/Resources
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.stillpath.app.widgets
+        PRODUCT_BUNDLE_IDENTIFIER: com.lanray07.stillpath.widgets
         PRODUCT_NAME: StillPathWidgets
         INFOPLIST_FILE: StillPathWidgets/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: StillPathWidgets/Resources/StillPathWidgets.entitlements
