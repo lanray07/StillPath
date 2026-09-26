@@ -1,0 +1,22 @@
+# Xcode
+DerivedData/
+build/
+*.xcarchive
+*.ipa
+*.dSYM.zip
+*.xcresult
+xcuserdata/
+*.xcuserstate
+
+# Generated project (project.yml is the source of truth)
+StillPath.xcodeproj/
+
+# macOS
+.DS_Store
+
+# Secrets and signing material
+*.p8
+*.p12
+*.mobileprovision
+*.provisionprofile
+

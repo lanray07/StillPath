@@ -1,0 +1,182 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      signed_archive:
+        description: Create a signed App Store archive
+        required: true
+        type: boolean
+        default: false
+
+concurrency:
+  group: ios-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  SCHEME: StillPath
+  PROJECT: StillPath.xcodeproj
+  DERIVED_DATA: ${{ github.workspace }}/DerivedData
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: macos-15
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          set -euo pipefail
+          XCODE_PATH="$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
+          xcodebuild -version
+          swift --version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          set -euo pipefail
+          xcodegen generate
+          xcodebuild -list -project "$PROJECT"
+
+      - name: Choose an iPhone simulator
+        id: simulator
+        run: |
+          set -euo pipefail
+          DEVICE_ID="$(python3 - <<'PY'
+          import json, subprocess
+          data = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'devices', 'available', '-j']))
+          for runtime, devices in data['devices'].items():
+              if 'iOS' not in runtime:
+                  continue
+              for device in devices:
+                  if device.get('isAvailable') and device['name'].startswith('iPhone'):
+                      print(device['udid'])
+                      raise SystemExit
+          raise SystemExit('No available iPhone simulator found')
+          PY
+          )"
+          echo "id=$DEVICE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Build and run unit tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination "id=${{ steps.simulator.outputs.id }}" \
+            -derivedDataPath "$DERIVED_DATA" \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee xcodebuild-test.log
+
+      - name: Upload test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcode-test-diagnostics
+          path: |
+            xcodebuild-test.log
+            TestResults.xcresult
+          if-no-files-found: ignore
+          retention-days: 14
+
+  signed-archive:
+    name: Signed App Store archive
+    if: github.event_name == 'workflow_dispatch' && inputs.signed_archive
+    needs: build-and-test
+    runs-on: macos-15
+    timeout-minutes: 40
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Select Xcode and install XcodeGen
+        run: |
+          set -euo pipefail
+          XCODE_PATH="$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
+          brew install xcodegen
+          xcodegen generate
+
+      - name: Install App Store Connect authentication key
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$API_KEY_ID"
+          test -n "$API_PRIVATE_KEY"
+          KEY_PATH="$RUNNER_TEMP/AuthKey_${API_KEY_ID}.p8"
+          printf '%s' "$API_PRIVATE_KEY" > "$KEY_PATH"
+          chmod 600 "$KEY_PATH"
+          grep -q 'BEGIN PRIVATE KEY' "$KEY_PATH"
+          echo "AUTH_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
+
+      - name: Create signed archive
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          set -o pipefail
+          xcodebuild clean archive \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/StillPath.xcarchive" \
+            -derivedDataPath "$DERIVED_DATA" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$AUTH_KEY_PATH" \
+            -authenticationKeyID "$API_KEY_ID" \
+            -authenticationKeyIssuerID "$API_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            | tee xcodebuild-archive.log
+
+      - name: Export signed IPA
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          set -o pipefail
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/StillPath.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist ci/ExportOptions.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$AUTH_KEY_PATH" \
+            -authenticationKeyID "$API_KEY_ID" \
+            -authenticationKeyIssuerID "$API_ISSUER_ID" \
+            | tee xcodebuild-export.log
+
+      - name: Upload signed build
+        uses: actions/upload-artifact@v4
+        with:
+          name: StillPath-App-Store
+          path: |
+            ${{ runner.temp }}/export/*.ipa
+            xcodebuild-archive.log
+            xcodebuild-export.log
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove authentication key
+        if: always()
+        run: rm -f "$AUTH_KEY_PATH"
+

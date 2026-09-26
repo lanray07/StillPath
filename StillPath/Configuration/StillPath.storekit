@@ -1,0 +1,19 @@
+{
+  "identifier" : "C2817D0E-87AF-41B9-99CE-2F857522D056",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : { "_applicationInternalID" : "0", "_developerTeamID" : "" },
+  "subscriptionGroups" : [
+    {
+      "id" : "C8B9914F-F1A7-4AA1-8612-66F7E00190DC",
+      "localizations" : [{ "description" : "Unlock voice reflections, translation, advanced search and more.", "displayName" : "StillPath Premium", "locale" : "en_GB" }],
+      "name" : "StillPath Premium",
+      "subscriptions" : [
+        { "adHocOffers" : [], "codeOffers" : [], "displayPrice" : "4.99", "familyShareable" : true, "groupNumber" : 1, "internalID" : "1", "introductoryOffer" : { "internalID" : "intro-monthly", "paymentMode" : "free", "subscriptionPeriod" : "P1W" }, "localizations" : [{ "description" : "Full access, billed monthly.", "displayName" : "Monthly", "locale" : "en_GB" }], "productID" : "com.stillpath.premium.monthly", "recurringSubscriptionPeriod" : "P1M", "referenceName" : "StillPath Monthly", "subscriptionGroupID" : "C8B9914F-F1A7-4AA1-8612-66F7E00190DC", "type" : "RecurringSubscription" },
+        { "adHocOffers" : [], "codeOffers" : [], "displayPrice" : "39.99", "familyShareable" : true, "groupNumber" : 2, "internalID" : "2", "introductoryOffer" : { "internalID" : "intro-annual", "paymentMode" : "free", "subscriptionPeriod" : "P1W" }, "localizations" : [{ "description" : "Full access, billed annually.", "displayName" : "Annual", "locale" : "en_GB" }], "productID" : "com.stillpath.premium.annual", "recurringSubscriptionPeriod" : "P1Y", "referenceName" : "StillPath Annual", "subscriptionGroupID" : "C8B9914F-F1A7-4AA1-8612-66F7E00190DC", "type" : "RecurringSubscription" }
+      ]
+    }
+  ],
+  "version" : { "major" : 3, "minor" : 0 }
+}
+

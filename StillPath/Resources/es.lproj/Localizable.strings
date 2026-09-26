@@ -1,0 +1,4 @@
+"tab.home" = "Inicio"; "tab.practices" = "Prácticas"; "tab.journal" = "Diario"; "tab.journey" = "Camino"; "tab.settings" = "Ajustes";
+"onboarding.welcome.title" = "Haz espacio para lo que importa."; "onboarding.begin" = "Empieza tu camino";
+"home.begin" = "Comenzar práctica"; "home.quietMoment" = "Momento de calma"; "journal.title" = "Diario"; "practices.title" = "Tus prácticas";
+
