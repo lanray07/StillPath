@@ -6,7 +6,7 @@ struct StartPracticeIntent: AppIntent {
     static let description = IntentDescription("intent.startPractice.description")
     static let openAppWhenRun = true
     @Parameter(title: "intent.practiceKind") var kind: IntentPracticeKind
-    static var parameterSummary: some ParameterSummary { Summary("intent.startPractice.summary \(.$kind)") }
+    static var parameterSummary: some ParameterSummary { Summary("Start \(.$kind)") }
     func perform() async throws -> some IntentResult {
         UserDefaults.standard.set("practice/\(kind.rawValue)", forKey: "intent.pendingDestination")
         return .result()

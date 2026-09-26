@@ -55,19 +55,55 @@ struct ReminderSettingsView: View {
 
     var body: some View {
         Form {
-            Section { Toggle("reminders.enabled", isOn: Binding(get: { reminders.first?.isEnabled ?? true }, set: { value in ensureReminder().isEnabled = value })) }
-            Section("reminders.schedule") {
-                DatePicker("reminders.time", selection: $time, displayedComponents: .hourAndMinute)
-                ForEach(1...7, id: \.self) { weekday in Toggle(Calendar.current.weekdaySymbols[weekday - 1], isOn: Binding(get: { weekdays.contains(weekday) }, set: { $0 ? weekdays.insert(weekday) : weekdays.remove(weekday) })) }
-            }
-            Section("reminders.wording") { TextField("reminders.message", text: $message, axis: .vertical) }
-            Section("reminders.pause") { Button("reminders.pauseToday") { pause(days: 1) }; Button("reminders.pauseWeek") { pause(days: 7) }; Button("reminders.pauseIndefinitely") { let reminder = ensureReminder(); reminder.isEnabled = false; service.cancel(id: reminder.id) } }
+            enabledSection
+            scheduleSection
+            wordingSection
+            pauseSection
             Button("common.save") { Task { await save() } }.buttonStyle(PrimaryButtonStyle()).listRowBackground(Color.clear)
             if let status { Text(status).font(.footnote).foregroundStyle(.secondary) }
         }.navigationTitle("reminders.title")
     }
 
+    private var enabledSection: some View {
+        Section { Toggle("reminders.enabled", isOn: enabledBinding) }
+    }
+
+    private var scheduleSection: some View {
+        Section("reminders.schedule") {
+            DatePicker("reminders.time", selection: $time, displayedComponents: .hourAndMinute)
+            ForEach(1...7, id: \.self) { weekday in
+                Toggle(Calendar.current.weekdaySymbols[weekday - 1], isOn: weekdayBinding(weekday))
+            }
+        }
+    }
+
+    private var wordingSection: some View {
+        Section("reminders.wording") { TextField("reminders.message", text: $message, axis: .vertical) }
+    }
+
+    private var pauseSection: some View {
+        Section("reminders.pause") {
+            Button("reminders.pauseToday") { pause(days: 1) }
+            Button("reminders.pauseWeek") { pause(days: 7) }
+            Button("reminders.pauseIndefinitely") { pauseIndefinitely() }
+        }
+    }
+
+    private var enabledBinding: Binding<Bool> {
+        Binding(get: { reminders.first?.isEnabled ?? true }, set: { ensureReminder().isEnabled = $0 })
+    }
+
+    private func weekdayBinding(_ weekday: Int) -> Binding<Bool> {
+        Binding(
+            get: { weekdays.contains(weekday) },
+            set: { isEnabled in
+                if isEnabled { weekdays.insert(weekday) } else { weekdays.remove(weekday) }
+            }
+        )
+    }
+
     private func ensureReminder() -> ReminderSchedule { if let existing = reminders.first { return existing }; let reminder = ReminderSchedule(message: message); modelContext.insert(reminder); return reminder }
     private func pause(days: Int) { let reminder = ensureReminder(); reminder.pausedUntil = Calendar.current.date(byAdding: .day, value: days, to: .now); service.cancel(id: reminder.id) }
+    private func pauseIndefinitely() { let reminder = ensureReminder(); reminder.isEnabled = false; service.cancel(id: reminder.id) }
     private func save() async { do { guard try await service.requestAuthorization() else { status = String(localized: "reminders.permissionDenied"); return }; let reminder = ensureReminder(); let components = Calendar.current.dateComponents([.hour, .minute], from: time); reminder.hour = components.hour ?? 8; reminder.minute = components.minute ?? 0; reminder.weekdayValues = weekdays.sorted(); reminder.message = message; reminder.pausedUntil = nil; try await service.schedule(reminder); status = String(localized: "reminders.saved") } catch { status = error.localizedDescription } }
 }
