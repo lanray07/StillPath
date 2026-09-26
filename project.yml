@@ -8,7 +8,7 @@ settings:
   base:
     SWIFT_VERSION: 6.0
     DEVELOPMENT_TEAM: ""
-    CURRENT_PROJECT_VERSION: 1
+    CURRENT_PROJECT_VERSION: 2
     MARKETING_VERSION: 1.0.0
     ENABLE_USER_SCRIPT_SANDBOXING: YES
     SWIFT_STRICT_CONCURRENCY: complete
@@ -23,7 +23,7 @@ targets:
       - path: StillPath/Configuration/StillPath.storekit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.lanray07.stillpath
+        PRODUCT_BUNDLE_IDENTIFIER: com.StillPath.app
         PRODUCT_NAME: StillPath
         INFOPLIST_FILE: StillPath/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: StillPath/Resources/StillPath.entitlements
@@ -40,7 +40,7 @@ targets:
       - path: StillPathWidgets/Resources
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.lanray07.stillpath.widgets
+        PRODUCT_BUNDLE_IDENTIFIER: com.StillPath.app.widgets
         PRODUCT_NAME: StillPathWidgets
         INFOPLIST_FILE: StillPathWidgets/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: StillPathWidgets/Resources/StillPathWidgets.entitlements
