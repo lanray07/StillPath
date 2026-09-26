@@ -11,6 +11,7 @@
   <key>CFBundleShortVersionString</key><string>$(MARKETING_VERSION)</string>
   <key>CFBundleVersion</key><string>$(CURRENT_PROJECT_VERSION)</string>
   <key>LSRequiresIPhoneOS</key><true/>
+  <key>ITSAppUsesNonExemptEncryption</key><false/>
   <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>com.StillPath.app</string><key>CFBundleURLSchemes</key><array><string>stillpath</string></array></dict></array>
   <key>UILaunchScreen</key><dict/>
   <key>NSMicrophoneUsageDescription</key><string>Record a private voice reflection when you choose to.</string>
