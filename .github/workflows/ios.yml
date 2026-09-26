@@ -168,9 +168,7 @@ jobs:
             -archivePath "$RUNNER_TEMP/StillPath.xcarchive" \
             -derivedDataPath "$DERIVED_DATA" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY=- \
-            PROVISIONING_PROFILE_SPECIFIER= \
+            CODE_SIGNING_ALLOWED=NO \
             | tee xcodebuild-archive.log
 
       - name: Export signed IPA
