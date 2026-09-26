@@ -105,5 +105,32 @@ struct ReminderSettingsView: View {
     private func ensureReminder() -> ReminderSchedule { if let existing = reminders.first { return existing }; let reminder = ReminderSchedule(message: message); modelContext.insert(reminder); return reminder }
     private func pause(days: Int) { let reminder = ensureReminder(); reminder.pausedUntil = Calendar.current.date(byAdding: .day, value: days, to: .now); service.cancel(id: reminder.id) }
     private func pauseIndefinitely() { let reminder = ensureReminder(); reminder.isEnabled = false; service.cancel(id: reminder.id) }
-    private func save() async { do { guard try await service.requestAuthorization() else { status = String(localized: "reminders.permissionDenied"); return }; let reminder = ensureReminder(); let components = Calendar.current.dateComponents([.hour, .minute], from: time); reminder.hour = components.hour ?? 8; reminder.minute = components.minute ?? 0; reminder.weekdayValues = weekdays.sorted(); reminder.message = message; reminder.pausedUntil = nil; try await service.schedule(reminder); status = String(localized: "reminders.saved") } catch { status = error.localizedDescription } }
+    private func save() async {
+        do {
+            guard try await service.requestAuthorization() else {
+                status = String(localized: "reminders.permissionDenied")
+                return
+            }
+            let reminder = ensureReminder()
+            let components = Calendar.current.dateComponents([.hour, .minute], from: time)
+            reminder.hour = components.hour ?? 8
+            reminder.minute = components.minute ?? 0
+            reminder.weekdayValues = weekdays.sorted()
+            reminder.message = message
+            reminder.pausedUntil = nil
+            let request = ReminderRequest(
+                id: reminder.id,
+                hour: reminder.hour,
+                minute: reminder.minute,
+                weekdays: reminder.weekdayValues,
+                message: reminder.message,
+                isEnabled: reminder.isEnabled,
+                pausedUntil: reminder.pausedUntil
+            )
+            try await service.schedule(request)
+            status = String(localized: "reminders.saved")
+        } catch {
+            status = error.localizedDescription
+        }
+    }
 }
