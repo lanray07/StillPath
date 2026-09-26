@@ -151,6 +151,8 @@ jobs:
           printf '%s' "$API_PRIVATE_KEY" > "$KEY_PATH"
           chmod 600 "$KEY_PATH"
           grep -q 'BEGIN PRIVATE KEY' "$KEY_PATH"
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          cp "$KEY_PATH" "$HOME/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8"
           echo "AUTH_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
 
       - name: Create developer archive
@@ -195,7 +197,7 @@ jobs:
             -authenticationKeyIssuerID "$API_ISSUER_ID" \
             | tee xcodebuild-export.log
 
-      - name: Upload signed build
+      - name: Upload signed build artifact
         uses: actions/upload-artifact@v5
         with:
           name: StillPath-App-Store
@@ -206,7 +208,25 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Deliver build to App Store Connect
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          IPA_PATH="$(find "$RUNNER_TEMP/export" -maxdepth 1 -name '*.ipa' -print -quit)"
+          test -n "$IPA_PATH"
+          xcrun altool --upload-app \
+            --type ios \
+            --file "$IPA_PATH" \
+            --apiKey "$API_KEY_ID" \
+            --apiIssuer "$API_ISSUER_ID"
+
       - name: Remove authentication key
         if: always()
-        run: rm -f "$AUTH_KEY_PATH"
+        env:
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+        run: |
+          rm -f "$AUTH_KEY_PATH"
+          rm -f "$HOME/.appstoreconnect/private_keys/AuthKey_${API_KEY_ID}.p8"
 
