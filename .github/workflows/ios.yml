@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Select Xcode
         run: |
@@ -69,6 +69,8 @@ jobs:
           PY
           )"
           echo "id=$DEVICE_ID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$DEVICE_ID" || true
+          xcrun simctl bootstatus "$DEVICE_ID" -b
 
       - name: Build and run unit tests
         run: |
@@ -78,6 +80,10 @@ jobs:
             -scheme "$SCHEME" \
             -configuration Debug \
             -destination "id=${{ steps.simulator.outputs.id }}" \
+            -destination-timeout 120 \
+            -test-timeouts-enabled YES \
+            -default-test-execution-time-allowance 60 \
+            -maximum-test-execution-time-allowance 120 \
             -derivedDataPath "$DERIVED_DATA" \
             -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO \
@@ -85,7 +91,7 @@ jobs:
 
       - name: Upload test diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: xcode-test-diagnostics
           path: |
@@ -103,7 +109,7 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Select Xcode and install XcodeGen
         run: |
@@ -166,7 +172,7 @@ jobs:
             | tee xcodebuild-export.log
 
       - name: Upload signed build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: StillPath-App-Store
           path: |
