@@ -11,17 +11,17 @@ final class AppStateTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suiteName) }
 
         let state = AppState(defaults: defaults)
-        var didObserveChange = false
+        let changeObserved = expectation(description: "Observable state publishes onboarding completion")
 
         withObservationTracking {
             _ = state.hasCompletedOnboarding
         } onChange: {
-            didObserveChange = true
+            changeObserved.fulfill()
         }
 
         state.hasCompletedOnboarding = true
 
-        XCTAssertTrue(didObserveChange)
+        wait(for: [changeObserved], timeout: 1)
         XCTAssertTrue(defaults.bool(forKey: "onboarding.complete"))
         XCTAssertTrue(AppState(defaults: defaults).hasCompletedOnboarding)
     }
