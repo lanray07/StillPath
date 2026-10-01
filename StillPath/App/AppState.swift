@@ -1,14 +1,28 @@
+import Foundation
 import Observation
 import SwiftUI
 
 @MainActor @Observable
 final class AppState {
+    @ObservationIgnored private let defaults: UserDefaults
+
     var selectedTab: AppTab = .home
     var activeSession: SessionPlan?
     var presentedSheet: SheetDestination?
 
-    @ObservationIgnored @AppStorage("onboarding.complete") var hasCompletedOnboarding = false
-    @ObservationIgnored @AppStorage("preferred.language") var preferredLanguage = "system"
+    var hasCompletedOnboarding: Bool {
+        didSet { defaults.set(hasCompletedOnboarding, forKey: "onboarding.complete") }
+    }
+
+    var preferredLanguage: String {
+        didSet { defaults.set(preferredLanguage, forKey: "preferred.language") }
+    }
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        hasCompletedOnboarding = defaults.bool(forKey: "onboarding.complete")
+        preferredLanguage = defaults.string(forKey: "preferred.language") ?? "system"
+    }
 }
 
 enum AppTab: String, CaseIterable, Identifiable {
