@@ -114,6 +114,12 @@
 "premium.introductoryOffer %@" = "Introductory offer: %@";
 "premium.purchaseHint" = "Purchases this auto-renewable subscription.";
 "premium.terms" = "Subscriptions renew automatically unless cancelled at least 24 hours before renewal. Manage or cancel in your App Store account.";
+"premium.period.month" = "month";
+"premium.period.year" = "year";
+"premium.period.subscription" = "subscription period";
+"premium.pricePerMonth %@" = "%@ per month";
+"premium.privacyPolicy" = "Privacy Policy";
+"premium.termsOfUse" = "Terms of Use (EULA)";
 "premium.active" = "Active";
 "premium.explore" = "Explore";
 "settings.title" = "Settings";

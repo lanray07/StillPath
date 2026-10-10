@@ -17,7 +17,7 @@ struct PaywallView: View {
                 }
             }
             Button("premium.restore") { Task { await store.restore() } }
-            Text("premium.terms").font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
+            PremiumLegalDisclosure()
         }.padding().frame(maxWidth: 620).frame(maxWidth: .infinity) }.background(CalmBackground()).navigationTitle("StillPath Premium").toolbar { ToolbarItem(placement: .cancellationAction) { Button("common.close") { dismiss() } } }.task { await store.refresh() }
     }
 }
@@ -27,6 +27,26 @@ private struct Benefit: View { let icon: String; let text: LocalizedStringKey; v
 enum PremiumPurchaseLayout {
     static let horizontalInset: CGFloat = StillPathSpacing.md
     static let minimumTapHeight: CGFloat = 64
+}
+
+enum PremiumLegalLinks {
+    static let privacyURL = URL(string: "https://lanray07.github.io/StillPath/privacy.html")!
+    static let termsURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
+}
+
+enum PremiumSubscriptionDisclosure {
+    static func billingPeriod(for productID: String) -> String {
+        switch productID {
+        case EntitlementStore.monthlyID: String(localized: "premium.period.month")
+        case EntitlementStore.annualID: String(localized: "premium.period.year")
+        default: String(localized: "premium.period.subscription")
+        }
+    }
+
+    static func monthlyEquivalent(for price: Decimal, productID: String) -> Decimal? {
+        guard productID == EntitlementStore.annualID else { return nil }
+        return price / 12
+    }
 }
 
 private struct PremiumPurchaseButton: View {
@@ -75,9 +95,38 @@ private struct PremiumPurchaseButton: View {
     }
 
     private var price: some View {
-        Text(product.displayPrice)
-            .font(.headline.monospacedDigit())
-            .fixedSize(horizontal: true, vertical: false)
+        VStack(alignment: .trailing, spacing: StillPathSpacing.xs) {
+            Text("\(product.displayPrice) / \(PremiumSubscriptionDisclosure.billingPeriod(for: product.id))")
+                .font(.headline.monospacedDigit())
+            if let monthlyEquivalent = PremiumSubscriptionDisclosure.monthlyEquivalent(
+                for: product.price,
+                productID: product.id
+            ) {
+                Text("premium.pricePerMonth \(monthlyEquivalent.formatted(product.priceFormatStyle))")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.82))
+            }
+        }
+        .multilineTextAlignment(.trailing)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+private struct PremiumLegalDisclosure: View {
+    var body: some View {
+        VStack(spacing: StillPathSpacing.sm) {
+            Text("premium.terms")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            HStack(spacing: StillPathSpacing.md) {
+                Link("premium.privacyPolicy", destination: PremiumLegalLinks.privacyURL)
+                Link("premium.termsOfUse", destination: PremiumLegalLinks.termsURL)
+            }
+            .font(.caption.weight(.semibold))
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .contain)
     }
 }
 
