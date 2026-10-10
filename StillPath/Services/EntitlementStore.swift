@@ -3,8 +3,8 @@ import StoreKit
 
 @MainActor @Observable
 final class EntitlementStore {
-    static let monthlyID = "com.stillpath.premium.monthly"
-    static let annualID = "com.stillpath.premium.annual"
+    nonisolated static let monthlyID = "com.stillpath.premium.monthly"
+    nonisolated static let annualID = "com.stillpath.premium.annual"
     private(set) var products: [Product] = []
     private(set) var purchasedProductIDs: Set<String> = []
     private(set) var isLoading = false
