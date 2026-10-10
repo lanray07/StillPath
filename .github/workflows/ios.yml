@@ -108,6 +108,42 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             | tee xcodebuild-test.log
 
+      - name: Record subscription information for App Review
+        if: github.event_name == 'workflow_dispatch' && inputs.run_simulator_tests
+        env:
+          RECORD_APP_REVIEW: "1"
+        run: |
+          set -euo pipefail
+          VIDEO_PATH="$GITHUB_WORKSPACE/StillPath-App-Review-Build-7.mp4"
+          xcrun simctl io "${{ steps.simulator.outputs.id }}" recordVideo --codec=h264 "$VIDEO_PATH" &
+          RECORDING_PID=$!
+          cleanup() {
+            kill -INT "$RECORDING_PID" 2>/dev/null || true
+            wait "$RECORDING_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          xcodebuild test-without-building \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination "id=${{ steps.simulator.outputs.id }}" \
+            -destination-timeout 120 \
+            -only-testing:StillPathUITests/SubscriptionReviewRecordingTests/testShowRequiredSubscriptionInformation \
+            -derivedDataPath "$DERIVED_DATA" \
+            CODE_SIGNING_ALLOWED=NO
+          cleanup
+          trap - EXIT
+          test -s "$VIDEO_PATH"
+
+      - name: Upload App Review recording
+        if: github.event_name == 'workflow_dispatch' && inputs.run_simulator_tests
+        uses: actions/upload-artifact@v5
+        with:
+          name: StillPath-App-Review-Recording
+          path: StillPath-App-Review-Build-7.mp4
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload test diagnostics
         if: always()
         uses: actions/upload-artifact@v5

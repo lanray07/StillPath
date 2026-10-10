@@ -55,6 +55,18 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.stillpath.tests
+  StillPathUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: StillPathUITests
+    resources:
+      - path: StillPath/Configuration/StillPath.storekit
+    dependencies:
+      - target: StillPath
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.stillpath.uitests
 schemes:
   StillPath:
     build:
@@ -62,11 +74,14 @@ schemes:
         StillPath: all
         StillPathWidgets: all
         StillPathTests: [test]
+        StillPathUITests: [test]
     test:
       targets:
         - StillPathTests
+        - StillPathUITests
     run:
       config: Debug
+      storeKitConfiguration: StillPath/Configuration/StillPath.storekit
     archive:
       config: Release
 
