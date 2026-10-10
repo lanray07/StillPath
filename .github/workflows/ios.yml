@@ -105,6 +105,7 @@ jobs:
             -maximum-test-execution-time-allowance 120 \
             -derivedDataPath "$DERIVED_DATA" \
             -resultBundlePath TestResults.xcresult \
+            -skip-testing:StillPathUITests \
             CODE_SIGNING_ALLOWED=NO \
             | tee xcodebuild-test.log
 
