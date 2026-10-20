@@ -28,7 +28,15 @@ final class AppState {
 enum AppTab: String, CaseIterable, Identifiable {
     case home, practices, journal, journey, settings
     var id: Self { self }
-    var title: LocalizedStringKey { LocalizedStringKey("tab.\(rawValue)") }
+    var title: String {
+        switch self {
+        case .home: String(localized: "tab.home")
+        case .practices: String(localized: "tab.practices")
+        case .journal: String(localized: "tab.journal")
+        case .journey: String(localized: "tab.journey")
+        case .settings: String(localized: "tab.settings")
+        }
+    }
     var symbol: String {
         switch self {
         case .home: "house"

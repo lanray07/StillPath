@@ -115,7 +115,7 @@ jobs:
           RECORD_APP_REVIEW: "1"
         run: |
           set -euo pipefail
-          VIDEO_PATH="$GITHUB_WORKSPACE/StillPath-App-Review-Build-7.mp4"
+          VIDEO_PATH="$GITHUB_WORKSPACE/StillPath-App-Review-Build-8.mp4"
           xcrun simctl io "${{ steps.simulator.outputs.id }}" recordVideo --codec=h264 "$VIDEO_PATH" &
           RECORDING_PID=$!
           cleanup() {
@@ -141,7 +141,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: StillPath-App-Review-Recording
-          path: StillPath-App-Review-Build-7.mp4
+          path: StillPath-App-Review-Build-8.mp4
           if-no-files-found: error
           retention-days: 14
 

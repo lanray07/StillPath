@@ -5,6 +5,13 @@ import XCTest
 
 @MainActor
 final class AppStateTests: XCTestCase {
+    func testTabTitlesAreResolvedBeforeTheyReachPlatformTabChrome() {
+        let titles: [String] = AppTab.allCases.map(\.title)
+
+        XCTAssertEqual(titles.count, AppTab.allCases.count)
+        XCTAssertFalse(titles.contains(where: { $0.hasPrefix("tab.") }))
+    }
+
     func testCompletingOnboardingPersistsAndNotifiesObservers() {
         let suiteName = "AppStateTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
